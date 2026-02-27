@@ -61,6 +61,7 @@ typedef struct {
     bool key_up_held, key_down_held;
     game_state_e state;
     int state_timer;
+    bool player_scored_last;
 } game_state_t;
 
 typedef struct {
@@ -279,6 +280,7 @@ static void update_game(game_state_t* g) {
     // Scoring: ball exits left → player scores
     if (g->ball_x + BALL_SIZE < 0) {
         g->player_score++;
+        g->player_scored_last = true;
         play_sound(SOUND_SCORE);
         reset_ball(g, 1);
         g->state = STATE_SCORED;
@@ -288,6 +290,7 @@ static void update_game(game_state_t* g) {
     // Scoring: ball exits right → AI scores
     if (g->ball_x > screen_w) {
         g->ai_score++;
+        g->player_scored_last = false;
         play_sound(SOUND_SCORE);
         reset_ball(g, -1);
         g->state = STATE_SCORED;
@@ -346,10 +349,10 @@ static void render_game(game_state_t* g) {
 
     // State-specific overlays
     if (g->state == STATE_SCORED) {
-        if (g->ai_score > g->player_score) {
-            draw_centered_text("AI SCORES!", 40, 200);
-        } else {
+        if (g->player_scored_last) {
             draw_centered_text("PLAYER SCORES!", 40, 200);
+        } else {
+            draw_centered_text("AI SCORES!", 40, 200);
         }
     }
 
